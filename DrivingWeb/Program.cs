@@ -1,3 +1,6 @@
+using Autofac.Extensions.DependencyInjection;
+using DrivingWeb;
+using NLog.Web;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -23,3 +26,23 @@ app.UseAuthorization();
 app.MapRazorPages();
 
 app.Run();
+
+static IHostBuilder CreateHostBuilder(string[] args) =>
+    Host.CreateDefaultBuilder(args)
+    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+    .ConfigureAppConfiguration((hosting, config) =>
+    {
+
+    }
+    ).ConfigureWebHostDefaults(webBuilder =>
+    {
+        webBuilder.UseStartup<Startup>();
+    }).ConfigureLogging((hostingContext, logging) =>
+    {
+        logging.ClearProviders();
+        logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+        logging.AddSimpleConsole(o => o.TimestampFormat = "dd/MMM/yyyy HH:mm:ss.sss");
+        logging.AddDebug();
+        logging.AddEventSourceLogger();
+    })
+    .UseNLog();
